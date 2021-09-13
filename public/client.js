@@ -19,6 +19,7 @@ var Botkit = {
     reconnect_count: 0,
     guid: null,
     current_user: null,
+    isWelcomeBack: false,
     on: function (event, handler) {
         this.message_window.addEventListener(event, function (evt) {
             handler(evt.detail);
@@ -164,7 +165,8 @@ var Botkit = {
 
 
         if (user && user.id) {
-            Botkit.setCookie('botkit_guid', user.id, 1);
+            that.guid = user.id;
+            //Botkit.setCookie('botkit_guid', user.id, 1);
 
             user.timezone_offset = new Date().getTimezoneOffset();
             console.log('CONNECT WITH USER', user);
@@ -206,17 +208,8 @@ var Botkit = {
         // Create WebSocket connection.
         that.socket = new WebSocket(ws_url);
 
-        var connectEvent = 'hello';
-        if (Botkit.getCookie('botkit_guid')) {
-            that.guid = Botkit.getCookie('botkit_guid');
-            connectEvent = 'welcome_back';
-        } else {
-            that.guid = that.generate_guid();
-            Botkit.setCookie('botkit_guid', that.guid, 1);
-        }
-
-        that.current_user.id = that.guid;
-
+        var connectEvent = that.current_user.isWelcomeBack ? 'welcome_back':'hello';
+        that.guid = that.current_user.id;
         if (this.options.enable_history) {
             that.getHistory();
         }
@@ -313,7 +306,7 @@ var Botkit = {
         user.timezone_offset = new Date().getTimezoneOffset();
 
         this.guid = user.id;
-        Botkit.setCookie('botkit_guid', user.id, 1);
+        //Botkit.setCookie('botkit_guid', user.id, 1);
 
         this.current_user = user;
 

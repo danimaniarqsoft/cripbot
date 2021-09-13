@@ -23,6 +23,7 @@ var Botkit = {
   },
   active: false,
   booted: false,
+  guid: null,
   activate: function () {
     this.active = true;
     if (this.container) {
@@ -56,9 +57,19 @@ var Botkit = {
 
     switch (message.data.name) {
       case 'booted':
+        if (Botkit.getCookie('botkit_guid')) {
+          Botkit.guid = Botkit.getCookie('botkit_guid');
+          connectEvent = 'welcome_back';
+          Botkit.current_user.isWelcomeBack = true;
+        } else {
+            Botkit.current_user.isWelcomeBack = false;
+            Botkit.guid = Botkit.generate_guid();
+            Botkit.setCookie('botkit_guid', Botkit.guid, 1);
+        }
+        Botkit.current_user.id = Botkit.guid;
         Botkit.trigger({
           name: 'connect',
-          user: Botkit.current_user ? Botkit.current_user : null,
+          user: Botkit.current_user,
         });
         Botkit.booted = true;
         if (Botkit.getCookie('botkit_messenger_active') == 'true') {
@@ -94,6 +105,15 @@ var Botkit = {
     });
 
 
+  },
+  generate_guid: function () {
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000)
+            .toString(16)
+            .substring(1);
+    }
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+        s4() + '-' + s4() + s4() + s4();
   },
   boot: function (user) {
     var that = this;
